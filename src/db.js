@@ -77,10 +77,10 @@ const db = {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS login_attempts (
         id SERIAL PRIMARY KEY,
-        ip_address INET NOT NULL,
+        ip_address TEXT NOT NULL,
         username VARCHAR(50),
         success BOOLEAN NOT NULL,
-        attempted_at TIMESTAMP DEFAULT NOW(),
+        attempted_at TIMESTAMPTZ DEFAULT NOW(),
         user_agent TEXT
       )
     `);
