@@ -1,0 +1,41 @@
+<%- include('partials/header') %>
+
+<div class="navigation-container">
+  <% if (items.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>暂无导航项目</h3>
+      <p>管理员登录后可添加导航链接</p>
+    </div>
+  <% } else { %>
+    <div class="nav-grid">
+      <% items.forEach(item => { %>
+        <div class="nav-card">
+          <a href="<%= item.url %>" target="_blank" rel="noopener noreferrer" class="nav-link">
+            <div class="nav-header">
+              <h3 class="nav-title"><%= item.label %></h3>
+              <div class="nav-description"><%= item.url.replace(/^https?:\/\//, '').split('/')[0] %></div>
+            </div>
+            <div class="nav-status">
+              <span class="status-badge <%= item.is_up === true ? 'status-up' : (item.is_up === false ? 'status-down' : 'status-unknown') %>">
+                <%= item.is_up === true ? '正常' : (item.is_up === false ? '异常' : '未检测') %>
+              </span>
+              <% if (item.last_checked_at) { %>
+                <div class="last-check">上次检测: <%= new Date(item.last_checked_at).toLocaleString('zh-CN', { 
+                  year: 'numeric',
+                  month: 'numeric', 
+                  day: 'numeric', 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  second: '2-digit'
+                }) %></div>
+              <% } %>
+            </div>
+          </a>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

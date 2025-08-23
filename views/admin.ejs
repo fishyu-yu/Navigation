@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+  <section class="admin">
+    <h1 class="title">导航管理</h1>
+    <% if (error) { %>
+      <div class="alert"><%= error %></div>
+    <% } %>
+    <form class="form" method="post" action="/admin/nav/new">
+      <div class="grid">
+        <label class="field">
+          <span>名称</span>
+          <input name="label" required placeholder="例如：官网" />
+        </label>
+        <label class="field">
+          <span>链接</span>
+          <input name="url" required placeholder="例如：https://example.com" />
+        </label>
+        <label class="field">
+          <span>排序</span>
+          <input name="order_index" type="number" value="0" />
+        </label>
+      </div>
+      <div>
+        <button class="btn primary" type="submit">添加</button>
+        <button class="btn" formaction="/status/check" formmethod="post">探测全部网站</button>
+      </div>
+    </form>
+
+    <ul class="nav-list admin-list">
+      <% if (items.length === 0) { %>
+        <li class="empty">暂无项目</li>
+      <% } %>
+      <% items.forEach(item => { %>
+        <li class="nav-item admin-item">
+          <a class="nav-link" href="<%= item.url %>" target="_blank" rel="noopener noreferrer">
+            <span class="label"><%= item.label %></span>
+            <span class="muted">(#<%= item.id %>)</span>
+            <span class="status <%= item.is_up === true ? 'up' : (item.is_up === false ? 'down' : 'unknown') %>">
+              <%= item.is_up === true ? '可用' : (item.is_up === false ? '不可用' : '未知') %>
+              <% if (item.response_time_ms) { %>
+                · <%= item.response_time_ms %>ms
+              <% } %>
+            </span>
+          </a>
+          <div class="nav-actions">
+            <a href="/admin/nav/<%= item.id %>/edit" class="btn secondary">编辑</a>
+            <form method="POST" action="/admin/nav/<%= item.id %>/delete" style="display: inline;">
+              <button type="submit" class="btn danger" onclick="return confirmDelete(event)">删除</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+<%- include('partials/footer') %>
+<script src="/confirmation.js"></script>
+<script src="/admin.js"></script>

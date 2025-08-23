@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>极简导航</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="main">
+      <div class="container">
+        <header class="page-header">
+          <h1 class="page-title">极简导航</h1>
+          <p class="page-subtitle">精选优质网站，一键直达</p>
+        </header>
+        
+        <div class="toolbar">
+          <button id="themeToggle" class="btn" aria-label="切换主题">
+            <span>🌓</span> 主题切换
+          </button>
+          <% if (isAuthenticated) { %>
+            <a class="btn" href="/admin">
+              <span>⚙️</span> 管理后台
+            </a>
+            <form action="/logout" method="post" style="display:inline">
+              <button class="btn" type="submit">
+                <span>👋</span> 退出(<%= username %>)
+              </button>
+            </form>
+          <% } else { %>
+            <a class="btn" href="/login">
+              <span>🔑</span> 管理员登录
+            </a>
+          <% } %>
+        </div>
