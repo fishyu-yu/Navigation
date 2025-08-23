@@ -1,0 +1,40 @@
+<%- include('partials/header') %>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">编辑导航项</h1>
+    <p class="page-subtitle">修改导航项的信息</p>
+  </div>
+
+  <% if (error) { %>
+    <div class="error-message">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <div class="form-container">
+    <form method="POST" action="/admin/nav/<%= item.id %>/edit" class="nav-form">
+      <div class="form-group">
+        <label for="label">名称</label>
+        <input type="text" id="label" name="label" value="<%= item.label %>" required>
+      </div>
+
+      <div class="form-group">
+        <label for="url">链接</label>
+        <input type="url" id="url" name="url" value="<%= item.url %>" required>
+      </div>
+
+      <div class="form-group">
+        <label for="order_index">排序</label>
+        <input type="number" id="order_index" name="order_index" value="<%= item.order_index %>" min="0">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">保存修改</button>
+        <a href="/admin" class="btn btn-secondary">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
