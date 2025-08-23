@@ -148,7 +148,23 @@ const validators = {
 function askQuestion(question, validator = null, isPassword = false) {
   return new Promise((resolve) => {
     const ask = () => {
+      // 重置输出模式
+      if (!isPassword) {
+        rl.stdoutMuted = false
+        rl._writeToOutput = function _writeToOutput(stringToWrite) {
+          rl.output.write(stringToWrite)
+        }
+      }
+      
       rl.question(question, (answer) => {
+        // 密码输入完成后重置
+        if (isPassword) {
+          rl.stdoutMuted = false
+          rl._writeToOutput = function _writeToOutput(stringToWrite) {
+            rl.output.write(stringToWrite)
+          }
+        }
+        
         if (validator) {
           const error = validator(answer)
           if (error) {
@@ -165,7 +181,6 @@ function askQuestion(question, validator = null, isPassword = false) {
         rl._writeToOutput = function _writeToOutput(stringToWrite) {
           if (stringToWrite.charCodeAt(0) === 13) {
             rl.output.write('\n')
-            rl.stdoutMuted = false
           } else {
             rl.output.write('*')
           }
