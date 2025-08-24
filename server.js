@@ -155,7 +155,21 @@ const statusCheckLimiter = rateLimit({
 
 // Middleware configuration
 // app.use(generalLimiter) // Rate limiting disabled
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d', // 缓存1天
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, path) => {
+    // 设置正确的MIME类型
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8')
+    } else if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+    }
+    // 添加安全头
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+  }
+}))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(

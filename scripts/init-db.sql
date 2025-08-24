@@ -33,8 +33,5 @@ INSERT INTO nav_items (label, url, order_index) VALUES
   ('Stack Overflow', 'https://stackoverflow.com', 3)
 ON CONFLICT DO NOTHING;
 
--- 显示表结构
-\d users
-\d nav_items
-
+-- 数据库初始化完成
 SELECT 'Database initialization completed!' as status;
