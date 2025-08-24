@@ -1,22 +1,17 @@
 /**
  * 人机验证组件
  * 支持 Google reCAPTCHA 和 Cloudflare Turnstile
- * 开发环境默认禁用
+ * 启用状态完全由配置决定
  */
 class CaptchaManager {
   constructor(options = {}) {
     this.provider = options.provider || 'recaptcha'; // 'recaptcha' 或 'turnstile'
     this.siteKey = options.siteKey || '';
-    this.enabled = options.enabled !== false; // 默认启用，除非明确设置为false
-    this.isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    this.enabled = options.enabled === true; // 只有明确设置为true时才启用
     this.widgetId = null;
     this.containerId = options.containerId || 'captcha-container';
     
-    // 开发环境自动禁用
-    if (this.isDevelopment) {
-      this.enabled = false;
-      console.log('[Captcha] 开发环境检测到，人机验证已禁用');
-    }
+    console.log('[Captcha] 验证码状态:', this.enabled ? '启用' : '禁用');
     
     this.init();
   }
@@ -136,7 +131,7 @@ class CaptchaManager {
    */
   getResponse() {
     if (!this.enabled) {
-      return 'dev-bypass'; // 开发环境绕过标识
+      return null; // 验证码未启用时返回null
     }
 
     if (!this.widgetId) {
@@ -304,7 +299,7 @@ window.validateCaptcha = function(captchaInstance) {
   const response = captchaInstance.getResponse();
   
   if (!captchaInstance.enabled) {
-    return true; // 开发环境绕过验证
+    return true; // 验证码未启用时跳过验证
   }
 
   if (!response) {

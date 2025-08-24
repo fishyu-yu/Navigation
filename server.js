@@ -61,11 +61,8 @@ async function verifyCaptcha(token, userIP) {
     return { success: true, message: 'CAPTCHA disabled' };
   }
 
-  // 检查是否为开发环境绕过标识
-  if (!token || token === 'dev-bypass') {
-    if (!CAPTCHA_CONFIG.enabled) {
-      return { success: true, message: 'Development bypass' };
-    }
+  // 检查验证码响应
+  if (!token) {
     console.log('[Captcha] 缺少验证码响应');
     return { success: false, message: '请完成人机验证' };
   }
