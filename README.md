@@ -25,7 +25,7 @@
 1. **克隆项目**
    ```bash
    git clone https://github.com/fishyu-yu/Navigation.git
-   cd navigation
+   cd Navigation
    ```
 
 2. **安装依赖**
