@@ -92,7 +92,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - 注释掉以允许推送静态文件目录
 
 # Storybook build outputs
 .out
