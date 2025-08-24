@@ -8,7 +8,7 @@ const path = require('path')
 const express = require('express')
 const session = require('express-session')
 const bcrypt = require('bcrypt')
-const rateLimit = require('express-rate-limit')
+// const rateLimit = require('express-rate-limit') // Rate limiting disabled
 const axios = require('axios')
 const dotenv = require('dotenv')
 
@@ -104,8 +104,9 @@ async function verifyCaptcha(token, userIP) {
   }
 }
 
-// Rate limiting configurations
+// Rate limiting configurations (DISABLED)
 // Rate limiting configuration
+/*
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -150,9 +151,10 @@ const statusCheckLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false
 })
+*/
 
 // Middleware configuration
-app.use(generalLimiter)
+// app.use(generalLimiter) // Rate limiting disabled
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -207,7 +209,7 @@ app.get('/api/captcha/config', (req, res) => {
   res.json(config);
 });
 
-app.post('/login', loginLimiter, async (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password, captcha_response } = req.body;
   const ipAddress = req.ip || req.connection.remoteAddress;
   const userAgent = req.get('User-Agent') || '';
@@ -237,7 +239,7 @@ app.post('/login', loginLimiter, async (req, res) => {
     }
     
     const user = await db.findUserByUsername(username);
-    const isValidLogin = user && await bcrypt.compare(password, user.password_hash);
+    const isValidLogin = user ? await bcrypt.compare(password, user.password_hash) : false;
     
     // 记录登录尝试
     await db.recordLoginAttempt(ipAddress, username, isValidLogin, userAgent);
@@ -275,7 +277,7 @@ app.post('/logout', (req, res) => {
   });
 });
 
-app.get('/admin', adminLimiter, requireAuth, async (req, res) => {
+app.get('/admin', requireAuth, async (req, res) => {
   try {
     const items = await db.getNavItems();
     res.render('admin', { items, error: null });
@@ -284,7 +286,7 @@ app.get('/admin', adminLimiter, requireAuth, async (req, res) => {
   }
 });
 
-app.post('/admin/nav/new', adminLimiter, requireAuth, async (req, res) => {
+app.post('/admin/nav/new', requireAuth, async (req, res) => {
   const { label, url, order_index } = req.body;
   try {
     await db.createNavItem({ label, url, order_index: Number(order_index) || 0 });
@@ -294,7 +296,7 @@ app.post('/admin/nav/new', adminLimiter, requireAuth, async (req, res) => {
   }
 });
 
-app.get('/admin/nav/:id/edit', adminLimiter, requireAuth, async (req, res) => {
+app.get('/admin/nav/:id/edit', requireAuth, async (req, res) => {
   try {
     const item = await db.getNavItemById(req.params.id);
     if (!item) {
@@ -306,7 +308,7 @@ app.get('/admin/nav/:id/edit', adminLimiter, requireAuth, async (req, res) => {
   }
 });
 
-app.post('/admin/nav/:id/edit', adminLimiter, requireAuth, async (req, res) => {
+app.post('/admin/nav/:id/edit', requireAuth, async (req, res) => {
   try {
     const { label, url, order_index } = req.body;
     await db.updateNavItem(req.params.id, { label, url, order_index: Number(order_index) || 0 });
@@ -317,7 +319,7 @@ app.post('/admin/nav/:id/edit', adminLimiter, requireAuth, async (req, res) => {
   }
 });
 
-app.post('/admin/nav/reorder', adminLimiter, requireAuth, async (req, res) => {
+app.post('/admin/nav/reorder', requireAuth, async (req, res) => {
   try {
     const { items } = req.body;
     if (!Array.isArray(items)) {
@@ -330,7 +332,7 @@ app.post('/admin/nav/reorder', adminLimiter, requireAuth, async (req, res) => {
   }
 });
 
-app.post('/admin/nav/:id/delete', adminLimiter, requireAuth, async (req, res) => {
+app.post('/admin/nav/:id/delete', requireAuth, async (req, res) => {
   try {
     await db.deleteNavItem(req.params.id);
     res.redirect('/admin');
@@ -339,7 +341,7 @@ app.post('/admin/nav/:id/delete', adminLimiter, requireAuth, async (req, res) =>
   }
 });
 
-app.post('/status/check', statusCheckLimiter, requireAuth, async (req, res) => {
+app.post('/status/check', requireAuth, async (req, res) => {
   try {
     await db.checkAllStatuses();
     res.redirect('back');

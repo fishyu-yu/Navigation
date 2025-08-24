@@ -17,12 +17,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/navigation-system.git"
+    "url": "https://github.com/fishyu-yu/Navigation.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/navigation-system/issues"
+    "url": "https://github.com/fishyu-yu/Navigation/issues"
   },
-  "homepage": "https://github.com/your-username/navigation-system#readme",
+  "homepage": "https://github.com/fishyu-yu/Navigation#readme",
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=6.0.0"

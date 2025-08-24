@@ -1,7 +1,6 @@
 const { Pool } = require('pg');
 const { newDb } = require('pg-mem');
 const bcrypt = require('bcrypt');
-const fetch = require('node-fetch');
 const crypto = require('crypto');
 
 const db = {

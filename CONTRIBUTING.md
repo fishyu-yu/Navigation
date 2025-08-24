@@ -21,7 +21,7 @@
 
 1. **Fork 项目**
    ```bash
-   git clone https://github.com/your-username/navigation.git
+   git clone https://github.com/fishyu-yu/Navigation.git
    cd navigation
    ```
 
