@@ -265,6 +265,13 @@ app.post('/login', async (req, res) => {
   const ipAddress = req.ip || req.connection.remoteAddress;
   const userAgent = req.get('User-Agent') || '';
   
+  // 调试日志
+  console.log('[Login] 收到登录请求:', {
+    username,
+    captcha_response: captcha_response ? '已提供' : '未提供',
+    captcha_enabled: CAPTCHA_CONFIG.enabled
+  });
+  
   try {
     // 检查IP是否被封锁
     const isBlocked = await db.isIpBlocked(ipAddress);

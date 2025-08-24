@@ -106,12 +106,20 @@ class CaptchaManager {
 
     try {
       if (this.provider === 'recaptcha') {
-        this.widgetId = window.grecaptcha.render(container, {
-          sitekey: this.siteKey,
-          callback: this.onSuccess.bind(this),
-          'expired-callback': this.onExpired.bind(this),
-          'error-callback': this.onError.bind(this)
-        });
+        // 确保 grecaptcha API 完全加载
+        if (window.grecaptcha && window.grecaptcha.ready) {
+          window.grecaptcha.ready(() => {
+            this.widgetId = window.grecaptcha.render(container, {
+              sitekey: this.siteKey,
+              callback: this.onSuccess.bind(this),
+              'expired-callback': this.onExpired.bind(this),
+              'error-callback': this.onError.bind(this)
+            });
+          });
+        } else {
+          console.error('[Captcha] grecaptcha API 未准备就绪');
+          this.createErrorPlaceholder();
+        }
       } else if (this.provider === 'turnstile') {
         this.widgetId = window.turnstile.render(container, {
           sitekey: this.siteKey,
@@ -131,18 +139,25 @@ class CaptchaManager {
    */
   getResponse() {
     if (!this.enabled) {
+      console.log('[Captcha] 验证码未启用');
       return null; // 验证码未启用时返回null
     }
 
     if (!this.widgetId) {
+      console.log('[Captcha] widgetId 不存在');
       return null;
     }
 
     try {
+      let response;
       if (this.provider === 'recaptcha') {
-        return window.grecaptcha.getResponse(this.widgetId);
+        response = window.grecaptcha.getResponse(this.widgetId);
+        console.log('[Captcha] reCAPTCHA 响应:', response);
+        return response;
       } else if (this.provider === 'turnstile') {
-        return window.turnstile.getResponse(this.widgetId);
+        response = window.turnstile.getResponse(this.widgetId);
+        console.log('[Captcha] Turnstile 响应:', response);
+        return response;
       }
     } catch (error) {
       console.error('[Captcha] 获取响应失败:', error);

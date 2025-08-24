@@ -111,6 +111,7 @@
       const captchaResponseField = document.getElementById('captcha_response');
       if (captchaInstance && captchaInstance.enabled) {
         const response = captchaInstance.getResponse();
+        console.log('[Login] 验证码响应:', response ? '已获取' : '未获取', response);
         captchaResponseField.value = response || '';
         
         if (!response) {
@@ -119,6 +120,7 @@
           return false;
         }
       } else {
+        console.log('[Login] 验证码未启用');
         // 验证码未启用时清空字段
         captchaResponseField.value = '';
       }
