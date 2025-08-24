@@ -86,7 +86,7 @@ function showHelp() {
   console.log('  ADMIN_USER     管理员用户名 (默认: admin)')
   console.log('  ADMIN_PASS     管理员密码')
   console.log('  SYSTEM_PORT    系统端口 (默认: 3000)')
-  console.log('  SYSTEM_DOMAIN  系统域名 (默认: http://localhost:3000)\n')
+  console.log('  SYSTEM_DOMAIN  系统域名 (可选，默认: http://localhost:3000)\n')
   console.log(chalk.gray('示例:'))
   console.log(chalk.gray('  # 交互式模式（支持PostgreSQL和内存数据库）'))
   console.log(chalk.gray('  node scripts/init-wizard.js'))
@@ -127,8 +127,9 @@ const validators = {
   
   // 验证域名
   domain: (domain) => {
-    if (!domain.match(/^https?:\/\/.+/)) {
-      return '域名必须以http://或https://开头'
+    // 移除URL格式强制要求，允许空值或任意格式
+    if (domain && domain.trim() && !domain.match(/^https?:\/\/.+/)) {
+      console.log(chalk.yellow('⚠️  建议域名以http://或https://开头，但不强制要求'))
     }
     return null
   },
@@ -440,10 +441,12 @@ async function configureSystemWizard() {
   )
   if (portInput) config.system.port = parseInt(portInput)
   
-  config.system.domain = await askQuestion(
-    `系统域名 (${config.system.domain}): `,
-    validators.domain
-  ) || config.system.domain
+  const domainInput = await askQuestion(
+    `系统域名 (可选，${config.system.domain}): `
+  )
+  if (domainInput && domainInput.trim()) {
+    config.system.domain = domainInput.trim()
+  }
   
   console.log('\n选择时区：')
   console.log('1. Asia/Shanghai (北京时间)')
