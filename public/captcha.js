@@ -200,9 +200,39 @@ class CaptchaManager {
    */
   onError(error) {
     console.error('[Captcha] 验证错误:', error);
+    
+    // 显示用户友好的错误信息
+    this.showErrorMessage('验证码加载失败，请刷新页面重试');
+    
     document.dispatchEvent(new CustomEvent('captcha:error', {
       detail: { error, provider: this.provider }
     }));
+  }
+
+  /**
+   * 显示错误信息
+   */
+  showErrorMessage(message) {
+    const container = document.getElementById(this.containerId);
+    if (container) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'captcha-error-message';
+      errorDiv.innerHTML = `
+        <div style="color: #dc3545; padding: 10px; border: 1px solid #dc3545; border-radius: 4px; margin: 10px 0; background-color: #f8d7da;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>${message}</span>
+          <button type="button" onclick="location.reload()" style="margin-left: 10px; padding: 2px 8px; font-size: 12px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">重新加载</button>
+        </div>
+      `;
+      
+      // 移除之前的错误信息
+      const existingError = container.querySelector('.captcha-error-message');
+      if (existingError) {
+        existingError.remove();
+      }
+      
+      container.appendChild(errorDiv);
+    }
   }
 
   /**

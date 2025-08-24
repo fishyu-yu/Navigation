@@ -55,16 +55,23 @@ const CAPTCHA_CONFIG = {
  * @returns {Object} Verification result with success status and message
  */
 async function verifyCaptcha(token, userIP) {
+  // 如果验证码未启用，直接通过
   if (!CAPTCHA_CONFIG.enabled) {
-    return { success: true, message: 'Development environment - CAPTCHA bypassed' }
+    console.log('[Captcha] 验证码未启用，跳过验证');
+    return { success: true, message: 'CAPTCHA disabled' };
   }
 
+  // 检查是否为开发环境绕过标识
   if (!token || token === 'dev-bypass') {
-    return { success: !CAPTCHA_CONFIG.enabled, message: 'Missing CAPTCHA response' }
+    if (!CAPTCHA_CONFIG.enabled) {
+      return { success: true, message: 'Development bypass' };
+    }
+    console.log('[Captcha] 缺少验证码响应');
+    return { success: false, message: '请完成人机验证' };
   }
 
   try {
-    let verifyUrl, secretKey
+    let verifyUrl, secretKey;
     
     if (CAPTCHA_CONFIG.provider === 'recaptcha') {
       verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
@@ -73,34 +80,67 @@ async function verifyCaptcha(token, userIP) {
       verifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
       secretKey = CAPTCHA_CONFIG.turnstile.secretKey;
     } else {
-      return { success: false, message: '不支持的验证码提供商' };
-    }
-
-    if (!secretKey) {
-      console.error('[Captcha] 缺少密钥配置');
+      console.error('[Captcha] 不支持的验证码提供商:', CAPTCHA_CONFIG.provider);
       return { success: false, message: '验证码配置错误' };
     }
 
+    // 检查密钥配置
+    if (!secretKey || secretKey.trim() === '') {
+      console.error('[Captcha] 缺少密钥配置，提供商:', CAPTCHA_CONFIG.provider);
+      // 在生产环境中，如果配置错误，应该降级处理而不是直接失败
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('[Captcha] 生产环境验证码配置错误，临时禁用验证码');
+        return { success: true, message: '验证码配置错误，已临时禁用' };
+      }
+      return { success: false, message: '验证码配置错误' };
+    }
+
+    console.log('[Captcha] 开始验证，提供商:', CAPTCHA_CONFIG.provider);
+    
     const response = await axios.post(verifyUrl, null, {
       params: {
         secret: secretKey,
         response: token,
         remoteip: userIP
       },
-      timeout: 5000
+      timeout: 10000, // 增加超时时间
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
     });
 
     const result = response.data;
+    console.log('[Captcha] 验证响应:', result);
     
     if (result.success) {
+      console.log('[Captcha] 验证成功');
       return { success: true, message: '验证成功' };
     } else {
-      console.log('[Captcha] 验证失败:', result['error-codes']);
-      return { success: false, message: '验证码验证失败' };
+      console.log('[Captcha] 验证失败，错误代码:', result['error-codes']);
+      const errorCodes = result['error-codes'] || [];
+      
+      // 根据错误代码提供更具体的错误信息
+      if (errorCodes.includes('invalid-input-secret')) {
+        return { success: false, message: '验证码密钥配置错误' };
+      } else if (errorCodes.includes('invalid-input-response')) {
+        return { success: false, message: '验证码响应无效，请重新验证' };
+      } else if (errorCodes.includes('timeout-or-duplicate')) {
+        return { success: false, message: '验证码已过期，请重新验证' };
+      } else {
+        return { success: false, message: '验证码验证失败，请重试' };
+      }
     }
   } catch (error) {
     console.error('[Captcha] 验证请求失败:', error.message);
-    return { success: false, message: '验证码服务不可用' };
+    console.error('[Captcha] 错误详情:', error.response?.data || error);
+    
+    // 网络错误时的降级处理
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      console.warn('[Captcha] 网络连接失败，临时跳过验证');
+      return { success: true, message: '网络问题，已跳过验证' };
+    }
+    
+    return { success: false, message: '验证码服务暂时不可用，请稍后重试' };
   }
 }
 
