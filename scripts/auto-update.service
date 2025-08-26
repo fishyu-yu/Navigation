@@ -1,0 +1,84 @@
+[Unit]
+Description=Navigation System Auto Update Service
+Documentation=file:///path/to/project/scripts/README.md
+After=network-online.target
+Wants=network-online.target
+Requires=network.target
+
+[Service]
+# 服务类型
+Type=oneshot
+
+# 运行用户和组
+User=www-data
+Group=www-data
+
+# 工作目录
+WorkingDirectory=/path/to/your/project
+
+# 环境变量
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/path/to/your/project/.env
+
+# 执行命令
+ExecStart=/path/to/your/project/scripts/auto-update.sh --silent
+
+# 超时设置
+TimeoutStartSec=1800
+TimeoutStopSec=30
+
+# 重启策略
+Restart=no
+
+# 标准输出和错误输出
+StandardOutput=journal
+StandardError=journal
+
+# 日志标识
+SyslogIdentifier=auto-update
+
+# 安全设置
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/path/to/your/project
+ReadWritePaths=/tmp
+
+# 资源限制
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+
+# =============================================================================
+# 使用说明
+# =============================================================================
+#
+# 1. 复制此文件到系统服务目录：
+#    sudo cp auto-update.service /etc/systemd/system/
+#
+# 2. 编辑文件中的路径和用户信息：
+#    sudo nano /etc/systemd/system/auto-update.service
+#
+# 3. 重新加载systemd配置：
+#    sudo systemctl daemon-reload
+#
+# 4. 启用服务（开机自启）：
+#    sudo systemctl enable auto-update.service
+#
+# 5. 手动运行服务：
+#    sudo systemctl start auto-update.service
+#
+# 6. 查看服务状态：
+#    sudo systemctl status auto-update.service
+#
+# 7. 查看服务日志：
+#    sudo journalctl -u auto-update.service -f
+#
+# 8. 配置定时运行（使用systemd timer）：
+#    创建 auto-update.timer 文件
+#
+# =============================================================================

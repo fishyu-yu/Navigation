@@ -1,0 +1,100 @@
+[Unit]
+Description=Navigation System Auto Update Timer
+Documentation=file:///path/to/project/scripts/README.md
+Requires=auto-update.service
+
+[Timer]
+# 定时执行设置
+# 每天凌晨2点执行
+OnCalendar=*-*-* 02:00:00
+
+# 如果系统在预定时间关闭，启动后立即执行
+Persistent=true
+
+# 随机延迟（避免多个系统同时更新）
+RandomizedDelaySec=1800
+
+# 精度设置（1分钟精度）
+AccuracySec=1min
+
+# 如果上次执行失败，下次启动时重试
+WakeSystem=false
+
+[Install]
+WantedBy=timers.target
+
+# =============================================================================
+# 其他定时配置示例
+# =============================================================================
+#
+# 每小时执行一次：
+# OnCalendar=hourly
+# 或
+# OnCalendar=*-*-* *:00:00
+#
+# 每天执行一次：
+# OnCalendar=daily
+# 或
+# OnCalendar=*-*-* 00:00:00
+#
+# 每周执行一次（周日凌晨）：
+# OnCalendar=weekly
+# 或
+# OnCalendar=Sun *-*-* 00:00:00
+#
+# 每月执行一次（每月1号）：
+# OnCalendar=monthly
+# 或
+# OnCalendar=*-*-01 00:00:00
+#
+# 工作日执行（周一到周五）：
+# OnCalendar=Mon..Fri *-*-* 02:00:00
+#
+# 多个时间点执行：
+# OnCalendar=*-*-* 02:00:00
+# OnCalendar=*-*-* 14:00:00
+#
+# 每15分钟执行一次：
+# OnCalendar=*:0/15
+#
+# 系统启动后延迟执行：
+# OnBootSec=15min
+#
+# 上次执行后延迟执行：
+# OnUnitActiveSec=1h
+#
+# =============================================================================
+# 使用说明
+# =============================================================================
+#
+# 1. 复制此文件到系统服务目录：
+#    sudo cp auto-update.timer /etc/systemd/system/
+#
+# 2. 重新加载systemd配置：
+#    sudo systemctl daemon-reload
+#
+# 3. 启用定时器（开机自启）：
+#    sudo systemctl enable auto-update.timer
+#
+# 4. 启动定时器：
+#    sudo systemctl start auto-update.timer
+#
+# 5. 查看定时器状态：
+#    sudo systemctl status auto-update.timer
+#
+# 6. 查看所有定时器：
+#    sudo systemctl list-timers
+#
+# 7. 查看定时器日志：
+#    sudo journalctl -u auto-update.timer -f
+#
+# 8. 手动触发执行：
+#    sudo systemctl start auto-update.service
+#
+# 9. 停止定时器：
+#    sudo systemctl stop auto-update.timer
+#
+# 10. 禁用定时器：
+#     sudo systemctl disable auto-update.timer
+#
+# =============================================================================
