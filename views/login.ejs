@@ -47,7 +47,19 @@
            containerId: 'captcha-container'
          };
          
-         captchaInstance = new CaptchaManager(captchaConfig);
+         // 检查会话中的验证码状态
+          const captchaVerified = <%= JSON.stringify(captchaVerified) %>;
+         
+         if (captchaConfig.enabled && !captchaVerified) {
+           captchaInstance = new CaptchaManager(captchaConfig);
+         } else if (captchaVerified) {
+           console.log('[Login] 验证码已在会话中验证，跳过验证码显示');
+           // 隐藏验证码容器
+           const captchaContainer = document.getElementById('captcha-container');
+           if (captchaContainer) {
+             captchaContainer.style.display = 'none';
+           }
+         }
        } catch (error) {
          console.error('获取验证码配置失败:', error);
          // 降级到默认配置
@@ -109,7 +121,11 @@
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       // 获取验证码响应并填入隐藏字段
       const captchaResponseField = document.getElementById('captcha_response');
-      if (captchaInstance && captchaInstance.enabled) {
+      
+      if (captchaVerified) {
+        console.log('[Login] 验证码已在会话中验证，跳过验证码检查');
+        captchaResponseField.value = 'session_verified';
+      } else if (captchaInstance && captchaInstance.enabled) {
         const response = captchaInstance.getResponse();
         console.log('[Login] 验证码响应:', response ? '已获取' : '未获取', response);
         captchaResponseField.value = response || '';
