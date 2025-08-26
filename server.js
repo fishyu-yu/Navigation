@@ -222,6 +222,18 @@ app.use(
 app.use((req, res, next) => {
   res.locals.isAuthenticated = !!req.session.userId
   res.locals.username = req.session.username || null
+  
+  // 检查验证码验证状态是否过期（30分钟）
+  if (req.session.captchaVerified && req.session.captchaVerifiedAt) {
+    const CAPTCHA_EXPIRE_TIME = 30 * 60 * 1000; // 30分钟
+    const now = Date.now();
+    if (now - req.session.captchaVerifiedAt > CAPTCHA_EXPIRE_TIME) {
+      req.session.captchaVerified = false;
+      req.session.captchaVerifiedAt = null;
+      console.log('[Session] 验证码验证状态已过期，已清除');
+    }
+  }
+  
   next()
 })
 
@@ -245,7 +257,10 @@ app.get('/', async (req, res) => {
 
 app.get('/login', (req, res) => {
   if (req.session.userId) return res.redirect('/admin');
-  res.render('login', { error: null });
+  res.render('login', { 
+    error: null,
+    captchaVerified: req.session.captchaVerified || false
+  });
 });
 
 // 验证码配置API
@@ -269,7 +284,8 @@ app.post('/login', async (req, res) => {
   console.log('[Login] 收到登录请求:', {
     username,
     captcha_response: captcha_response ? '已提供' : '未提供',
-    captcha_enabled: CAPTCHA_CONFIG.enabled
+    captcha_enabled: CAPTCHA_CONFIG.enabled,
+    captcha_verified: req.session.captchaVerified || false
   });
   
   try {
@@ -284,8 +300,8 @@ app.post('/login', async (req, res) => {
       });
     }
     
-    // 验证码验证（如果启用）
-    if (CAPTCHA_CONFIG.enabled) {
+    // 验证码验证（如果启用且未在会话中验证过）
+    if (CAPTCHA_CONFIG.enabled && !req.session.captchaVerified) {
       const captchaResult = await verifyCaptcha(captcha_response, ipAddress);
       if (!captchaResult.success) {
         // 验证码失败也记录为登录尝试
@@ -294,6 +310,10 @@ app.post('/login', async (req, res) => {
           error: `验证码验证失败：${captchaResult.message}` 
         });
       }
+      // 验证码验证成功，在会话中标记
+      req.session.captchaVerified = true;
+      req.session.captchaVerifiedAt = Date.now();
+      console.log('[Login] 验证码验证成功，已在会话中标记');
     }
     
     const user = await db.findUserByUsername(username);
@@ -330,8 +350,17 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/');
+  // 清除验证码验证状态
+  req.session.captchaVerified = false;
+  req.session.captchaVerifiedAt = null;
+  
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('退出登录时销毁会话失败:', err);
+      return res.status(500).json({ error: '退出登录失败' });
+    }
+    res.clearCookie('connect.sid');
+    res.redirect('/login');
   });
 });
 
