@@ -283,7 +283,8 @@ app.post('/login', async (req, res) => {
   // 调试日志
   console.log('[Login] 收到登录请求:', {
     username,
-    captcha_response: captcha_response ? '已提供' : '未提供',
+    captcha_response: captcha_response || '未提供',
+    captcha_response_length: captcha_response ? captcha_response.length : 0,
     captcha_enabled: CAPTCHA_CONFIG.enabled,
     captcha_verified: req.session.captchaVerified || false
   });
@@ -296,7 +297,8 @@ app.post('/login', async (req, res) => {
       return res.render('login', { 
         error: `登录失败次数过多，请在 ${remainingTime} 分钟后重试`,
         blocked: true,
-        remainingTime
+        remainingTime,
+        captchaVerified: req.session.captchaVerified || false
       });
     }
     
@@ -307,7 +309,8 @@ app.post('/login', async (req, res) => {
         // 验证码失败也记录为登录尝试
         await db.recordLoginAttempt(ipAddress, username, false, userAgent);
         return res.render('login', { 
-          error: `验证码验证失败：${captchaResult.message}` 
+          error: `验证码验证失败：${captchaResult.message}`,
+          captchaVerified: req.session.captchaVerified || false
         });
       }
       // 验证码验证成功，在会话中标记
@@ -340,12 +343,16 @@ app.post('/login', async (req, res) => {
       
       res.render('login', { 
         error: errorMessage,
-        remainingAttempts
+        remainingAttempts,
+        captchaVerified: req.session.captchaVerified || false
       });
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.render('login', { error: '登录过程中发生错误，请重试' });
+    res.render('login', { 
+      error: '登录过程中发生错误，请重试',
+      captchaVerified: req.session.captchaVerified || false
+    });
   }
 });
 
